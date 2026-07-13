@@ -9,6 +9,7 @@ TARGET_LANGUAGE="Spanish"
 def translate_presentation(target_file):
     if not ".pptx" in target_file:
         target_file=target_file+".pptx"
+    print(f"Translating {target_file}")
 
     out_file=target_file.replace(".pptx",f"_{TARGET_LANGUAGE}.pptx")
     if(out_file.count("_")==1):
@@ -54,9 +55,13 @@ def main():
     print("Powerpoint Presentation Translator")
     print("Put PowerPoint files you want to translate in the 'original' folder")
     while True:
-        target_file=input("Enter the file name you want to translate. Leave this blank to exit.")
+        target_file=input("Enter the file name you want to translate (Leave this blank to exit): ")
         target_file=target_file.replace("\n","")
+        if target_file=="" or target_file=="EXIT" or len(target_file)<2:
+            print("Goodbye")
+            break
         translate_presentation(target_file)
+        
 
 if __name__=="__main__":
     main()
