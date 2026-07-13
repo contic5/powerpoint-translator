@@ -1,0 +1,7 @@
+Translate Powerpoint Presentation into another language.
+Translate text in each shape to a different language.
+
+This can help Jailene.
+
+https://pypi.org/project/deep-translator/
+pip install deep-translator
