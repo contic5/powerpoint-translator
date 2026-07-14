@@ -40,8 +40,11 @@ class App(TkinterDnD.Tk):
         self.shapes_translated=0
         self.total_shapes=0
 
-        self.slide_number=1
+        self.slide_index=0
         self.total_slides=0
+
+        self.file_name=""
+        self.out_file=""
 
     def import_file(self):
         file_path = filedialog.askopenfilename(title="Select a file", filetypes=[("PowerPoint Files", "*.pptx"),])
@@ -58,70 +61,73 @@ class App(TkinterDnD.Tk):
         print("Selected file:", file_path)
         self.translate_powerpoint(file_path)
 
-    def get_total_shapes(self,prs):
+    def get_total_shapes(self):
         total_shapes=0
-        for slide in prs.slides:
-                
+        for slide in self.prs.slides:
             for shape in slide.shapes:
-                #Try to translate shape text
-                try:
-                    if shape.text:
-                        total_shapes+=1
-                #Skip if the shape has no text
-                except AttributeError:
-                    pass
+                total_shapes+=1
         return total_shapes
 
-    def translate_powerpoint(self,file_path):
-        prs = Presentation(file_path)
-        file_name=file_path.split("/")[-1]        
+    def update_shape(self):
+        slide=self.prs.slides[self.slide_index]
+        shape=slide.shapes[self.shape_index]
+        shape_was_translated=False
+
+        try:
+            translated_text=GoogleTranslator(source='auto', target='es').translate(shape.text)
+            shape.text=translated_text
+            shape_was_translated=True
+        except AttributeError:
+            pass
+
+        status_text=f'''
+        Progress
+        Slides: {self.slide_index+1}/{self.total_slides}
+        Shapes: {self.shapes_translated}/{self.total_shapes}
+        '''
+        self.results_label.configure(text=status_text)
+
+        self.shape_index+=1
+        self.shapes_translated+=1
+        if self.shape_index>=len(slide.shapes):
+            self.slide_index+=1
+            self.shape_index=0
+        
+        if self.slide_index<len(self.prs.slides) and self.shapes_translated<MAX_SHAPES_TO_TRANSLATE:
+            if shape_was_translated:
+                self.after(1000, self.update_shape)
+            else:
+                self.update_shape()
+        else:
+            self.after(1000, self.save_presentation)
     
-        out_file=file_name.replace(".pptx",f"_{TARGET_LANGUAGE}.pptx")
-        if(out_file.count("_")==1):
-            out_file=out_file.replace("_"," ")
-        print(file_name,out_file)
+    def save_presentation(self):
+        self.prs.save(f"results/{self.out_file}")
+        print(f"Total Shapes {self.total_shapes}")
+        print(f"{self.file_name} translated to {TARGET_LANGUAGE}")
+
+        self.results_label.configure(f"{self.file_name} translated to {TARGET_LANGUAGE}")
+    
+    def translate_powerpoint(self,file_path):
+        self.prs = Presentation(file_path)
+        self.file_name=file_path.split("/")[-1]        
+    
+        self.out_file=self.file_name.replace(".pptx",f"_{TARGET_LANGUAGE}.pptx")
+        if(self.out_file.count("_")==1):
+            self.out_file=self.out_file.replace("_"," ")
+        print(self.file_name,self.out_file)
         print("Powerpoint Opened")
 
         self.shapes_translated=0
-        self.total_shapes=self.get_total_shapes(prs)
+        self.shape_index=0
+        self.total_shapes=self.get_total_shapes()
 
-        self.slide_number=1
-        self.total_slides=len(prs.slides)
+        self.slide_index=0
+        self.total_slides=len(self.prs.slides)
 
-        for slide in prs.slides:
-            if shapes_translated>=MAX_SHAPES_TO_TRANSLATE:
-                break
-                
-            for shape in slide.shapes:
-                #Try to translate shape text
-                try:
-                    translated_text=GoogleTranslator(source='auto', target='es').translate(shape.text)
-                    print(translated_text)
-                    shape.text=translated_text
+        self.update_shape()
 
-                    status_text=f'''
-                    Progress
-                    Slides: {slide_number}/{total_slides}
-                    Shapes: {shapes_translated}/{total_shapes}
-                    '''
-                    self.results_label.configure(text=status_text)
-
-                    time.sleep(1)
-                    shapes_translated+=1
-
-                    if shapes_translated>=MAX_SHAPES_TO_TRANSLATE:
-                        break
-                #Skip if the shape has no text
-                except AttributeError:
-                    pass
-            slide_number+=1
-
-        prs.save(f"results/{out_file}")
-        print(f"Total Shapes {total_shapes}")
-        print(f"{file_name} translated to {TARGET_LANGUAGE}")
-
-        self.results_label.configure(f"{file_name} translated to {TARGET_LANGUAGE}")
-        #os.open(f'results/{out_file}')
+        
 
 app = App()
 app.mainloop()
