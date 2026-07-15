@@ -32,7 +32,7 @@ TARGET_LANGUAGE="Spanish"
 class App(TkinterDnD.Tk if tkinterdnd2_available else tk.Tk):
     def __init__(self):
         super().__init__()
-        self.geometry("450x175")
+        self.geometry("450x250")
         self.title("PowerPoint Translator")
 
         #The label for the title
