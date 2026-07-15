@@ -1,19 +1,7 @@
 import tkinter as tk
+import customtkinter
+from tkinterdnd2 import TkinterDnD, DND_FILES
 from tkinter import filedialog
-from tkinter import ttk
-
-try:
-    import customtkinter
-except ModuleNotFoundError:
-    customtkinter = None
-
-try:
-    from tkinterdnd2 import TkinterDnD, DND_FILES
-    tkinterdnd2_available = True
-except ModuleNotFoundError:
-    TkinterDnD = None
-    DND_FILES = None
-    tkinterdnd2_available = False
 
 from pptx import Presentation
 from deep_translator import GoogleTranslator
@@ -29,48 +17,34 @@ MAX_SHAPES_TO_TRANSLATE=999
 
 TARGET_LANGUAGE="Spanish"
 
-class App(TkinterDnD.Tk if tkinterdnd2_available else tk.Tk):
+class App(TkinterDnD.Tk):
     def __init__(self):
         super().__init__()
         self.geometry("450x175")
         self.title("PowerPoint Translator")
 
         #The label for the title
-        if customtkinter is not None:
-            self.title_label = customtkinter.CTkLabel(self, text="PowerPoint Translator")
-            self.title_label.cget("font").configure(size=24)
-        else:
-            self.title_label = ttk.Label(self, text="PowerPoint Translator", font=("Segoe UI", 24))
+        self.title_label=customtkinter.CTkLabel(self,text="PowerPoint Translator")
+        self.title_label.cget("font").configure(size=24)
         self.title_label.pack()
 
         #A button that takes files by drag and drop or by click upload
-        if customtkinter is not None:
-            self.button = customtkinter.CTkButton(
-                self,
-                text="➕\nUpload File Here\n (Click or Drag and Drop)",
-                bg_color="blue",
-                fg_color="white",
-                command=self.import_file,
-                width=200,
-                height=50
-            )
-        else:
-            self.button = ttk.Button(
-                self,
-                text="➕\nUpload File Here\n (Click or Drag and Drop)",
-                command=self.import_file
-            )
+        self.button = customtkinter.CTkButton(
+            self,
+            text="➕\nUpload File Here\n (Click or Drag and Drop)",
+            bg_color="blue",
+            fg_color="white",
+            command=self.import_file,
+            width=200,
+            height=50
+        )
         self.button.pack(padx=40, pady=20)
 
-        if tkinterdnd2_available and DND_FILES is not None and hasattr(self.button, "drop_target_register"):
-            self.button.drop_target_register(DND_FILES)
-            self.button.dnd_bind("<<Drop>>", self.drop)
+        self.button.drop_target_register(DND_FILES)
+        self.button.dnd_bind("<<Drop>>", self.drop)
 
         #Label that tracks translation progress
-        if customtkinter is not None:
-            self.progress_label = customtkinter.CTkLabel(self, text="Upload a PowerPoint file to translate it.")
-        else:
-            self.progress_label = ttk.Label(self, text="Upload a PowerPoint file to translate it.")
+        self.progress_label=customtkinter.CTkLabel(self,text="Upload a PowerPoint file to translate it.")
         self.progress_label.pack()
 
         #Powerpoint file
@@ -209,6 +183,5 @@ class App(TkinterDnD.Tk if tkinterdnd2_available else tk.Tk):
         #Begin translating shapes
         self.translate_shape()
 
-if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+app = App()
+app.mainloop()
